@@ -1729,9 +1729,14 @@ class TRMLYamlForm extends HTMLElement {
 	  if (typeof value !== 'string') return '""';
 	  
 	  // Check if value needs quoting
-	  if (/[:#\[\]\{\},&\*\|>!'"%@`\n\t]/.test(value) || /^\d+$/.test(value) || value.startsWith(' ') || value.endsWith(' ')) {
-		return `"${value.replace(/"/g, '\\"')}"`;
-	  }
+	  if (
+        /[:#\[\]\{\},&\*\|>!'"%@`\n\t]/.test(value) || // Existing special chars
+        /^\d+$/.test(value) ||                       // Existing numeric string check
+        value.startsWith(' ') || value.endsWith(' ') || // Existing whitespace check
+        /^(true|false|yes|no|on|off)$/i.test(value)      // NEW check for YAML literals (case-insensitive)
+      ){
+		  return `"${value.replace(/"/g, '\\"')}"`;
+	  };
 	  
 	  return value;  
   }
@@ -2146,3 +2151,4 @@ class TRMLYamlForm extends HTMLElement {
 
 // Register the custom element
 customElements.define('trmnl-form-builder', TRMLYamlForm);
+
