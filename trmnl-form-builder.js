@@ -2058,10 +2058,10 @@ class TRMLYamlForm extends HTMLElement {
 			}
 		  }
 
-		  // 5. Top-Level Array items (Exactly 2 spaces + dash)
-		  // Regex changed from {2,} to {2} to avoid eating nested items
-		  else if (line.match(/^\s{2}-\s+/)) {
-			const value = line.replace(/^\s{2}-\s+/, '').trim();
+		  // 5. Top-Level Array items (2 or more spaces + dash)
+		  // But we've already handled conditional nested items above with a more specific check
+		  else if (line.match(/^\s{2,}-\s+/)) {
+			const value = line.replace(/^\s{2,}-\s+/, '').trim();
 
 			// If we're in conditional_validation, this is a NEW condition object
 			if (currentArrayKey === 'conditional_validation') {
@@ -2167,5 +2167,6 @@ class TRMLYamlForm extends HTMLElement {
 
 // Register the custom element
 customElements.define('trmnl-form-builder', TRMLYamlForm);
+
 
 
