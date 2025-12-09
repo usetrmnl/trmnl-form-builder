@@ -34,13 +34,29 @@ class TRMLYamlForm extends HTMLElement {
 
 	  // supported locales (based on trmnl-i18n)
       this.locales = [
-	    { code: 'de', label: 'Deutsch' },
-	    { code: 'es-ES', label: 'Español' },
-	    { code: 'fr', label: 'Français' },
-	    { code: 'it', label: 'Italiano' },
-	    { code: 'nl', label: 'Nederlands' },
-	    { code: 'pt-BR', label: 'Português' },
-	    { code: 'uk', label: 'український' }
+		{ code: 'de', label: 'Deutsch' },
+		{ code: 'nl', label: 'Nederlands' },
+		{ code: 'fr', label: 'Français' },
+		{ code: 'en-GB', label: 'English: UK' },
+		{ code: 'es-ES', label: 'Español' },
+		{ code: 'it', label: 'Italiano' },
+		{ code: 'no', label: 'Norsk' },
+		{ code: 'da', label: 'Dansk' },
+		{ code: 'ja', label: '日本語' },
+		{ code: 'de-AT', label: 'Deutsch: Österreich' },
+		{ code: 'ko', label: '한국어' },
+		{ code: 'sv', label: 'Svenska' },
+		{ code: 'pt-BR', label: 'Português' },
+		{ code: 'zh-HK', label: '中文: 香港' },
+		{ code: 'pl', label: 'Polski' },
+		{ code: 'uk', label: 'Українська' }, 
+		{ code: 'zh-CN', label: '中文: 简体' },
+		{ code: 'hu', label: 'Magyar' },
+		{ code: 'he', label: 'עברית' },
+		{ code: 'sk', label: 'Slovenčina' },
+		{ code: 'ru', label: 'Русский' },
+		{ code: 'is', label: 'Íslenska' },
+		{ code: 'id', label: 'Bahasa Indonesia' }
 	  ];
   
 	  // --- Property Definitions (How to render each setting) ---
@@ -2151,4 +2167,5 @@ class TRMLYamlForm extends HTMLElement {
 
 // Register the custom element
 customElements.define('trmnl-form-builder', TRMLYamlForm);
+
 
