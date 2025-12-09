@@ -14,3 +14,7 @@ See `index.html` for an example.
 ```
 
 Theme can also be set to `dark`.
+
+### Known Issues
+- Import
+  - More complex YAML structures with `|` or `>` aren't parsed properly
