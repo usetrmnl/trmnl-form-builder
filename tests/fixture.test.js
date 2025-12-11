@@ -96,6 +96,7 @@ describe('TRMNL Form Builder - Fixture Tests', () => {
       expect(authorBio['description-nl']).toContain('Bekijk de inhoud')
       expect(authorBio['description-fr']).toContain('Affichez le contenu')
       expect(authorBio['description-it']).toContain('Visualizzare il contenuto')
+      expect(authorBio['description-es-ES']).toContain('Vea el contenido')
 
       // Check board_id field with locales
       const boardId = fields[1]
@@ -106,6 +107,7 @@ describe('TRMNL Form Builder - Fixture Tests', () => {
       expect(boardId['description-nl']).toBeDefined()
       expect(boardId['description-fr']).toBeDefined()
       expect(boardId['description-it']).toBeDefined()
+      expect(boardId['description-es-ES']).toBeDefined()
     })
 
     it('should round-trip locales YAML correctly', () => {
@@ -129,6 +131,7 @@ describe('TRMNL Form Builder - Fixture Tests', () => {
       expect(reparsedFields[0]['description-nl']).toBe(fields[0]['description-nl'])
       expect(reparsedFields[0]['description-fr']).toBe(fields[0]['description-fr'])
       expect(reparsedFields[0]['description-it']).toBe(fields[0]['description-it'])
+      expect(reparsedFields[0]['description-es-ES']).toBe(fields[0]['description-es-ES'])
     })
   })
 
