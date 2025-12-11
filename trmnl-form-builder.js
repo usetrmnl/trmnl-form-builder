@@ -2001,8 +2001,8 @@ class TRMLYamlForm extends HTMLElement {
 		  }
 		  
 		  // 2. Field properties (2 spaces indentation)
-		  else if (currentField && line.match(/^\s{2}[a-z_-]+:/)) {
-			const match = line.match(/^\s{2}([a-z_-]+):\s*(.*)$/);
+		  else if (currentField && line.match(/^\s{2}[a-zA-Z_-]+:/)) {
+  			const match = line.match(/^\s{2}([a-zA-Z_-]+):\s*(.*)$/);
 			if (match) {
 			  const key = match[1];
 			  const value = match[2].trim();

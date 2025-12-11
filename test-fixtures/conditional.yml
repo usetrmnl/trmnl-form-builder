@@ -1,0 +1,29 @@
+- keyname: select
+  field_type: select
+  name: Select
+  options:
+    - a
+    - b
+    - c
+  conditional_validation:
+  - when: a
+    hidden:
+    - text_b
+    - text_c
+  - when: b
+    hidden:
+    - text_a
+    - text_c
+  - when: c
+    hidden:
+    - text_a
+    - text_b
+- keyname: text_a
+  field_type: text
+  name: Text A
+- keyname: text_b
+  field_type: text
+  name: Text B
+- keyname: text_c
+  field_type: text
+  name: Text C
