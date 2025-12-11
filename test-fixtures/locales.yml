@@ -1,0 +1,23 @@
+- keyname: author_bio
+  name: Trello for Public Boards
+  field_type: author_bio
+  category: crm,productivity
+  description: View the contents of a public Trello board with fine-grained controls over what you see.<br/>Created by Mario Lurig.
+  description-de: Zeigen Sie den Inhalt eines öffentlichen Trello-Boards an, wobei Sie genau steuern können, was Sie sehen.<br/>Erstellt von Mario Lurig.
+  description-nl: Bekijk de inhoud van een openbaar Trello-bord met nauwkeurige controle over wat je ziet.<br/>Gemaakt door Mario Lurig.
+  description-fr: Affichez le contenu d'un tableau Trello public en contrôlant finement ce que vous voyez.<br/>Créé par Mario Lurig.
+  description-it: Visualizzare il contenuto di una scheda Trello pubblica con controlli di precisione su ciò che si vede.<br/>Creato da Mario Lurig.
+  description-es-ES: Vea el contenido de un tablero público de Trello con controles precisos sobre lo que ve.<br/>Creado por Mario Lurig.
+  github_url: https://github.com/ucffool
+  learn_more_url: https://www.linkedin.com/in/mariolurig/
+  email_address: mariolurig+trmnl@gmail.com
+- keyname: board_id
+  name: Trello Board ID
+  field_type: string
+  description: 'Board ID, found here: trello.com/b/&lt;BoardID&gt;'
+  description-de: 'Board ID, zu finden hier: trello.com/b/&lt;BoardID&gt;'
+  description-nl: 'Board ID, hier te vinden: trello.com/b/&lt;BoardID&gt;'
+  description-fr: "ID du conseil d'administration, trouvé ici : trello.com/b/&lt;BoardID&gt;"
+  description-it: 'ID consiglio, trovato qui: trello.com/b/&lt;BoardID&gt;'
+  description-es-ES: 'ID del tablero, se encuentra aquí: trello.com/b/&lt;BoardID&gt;'
+  placeholder: efhMgP6E
