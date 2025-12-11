@@ -1,0 +1,35 @@
+- keyname: bio
+  name: About This Plugin
+  field_type: author_bio
+  description: "Get a clear snapshot of today's weather plus a 5-day forecast, including temperatures, uv indexes and rain chances.<br/><br/>This plugin was created by Daniel Sitnik."
+  category: life,personal
+  learn_more_url: https://ko-fi.com/danielsitnik/shop
+  github_url: http://github.com/danielsitnik/
+  email_address: danielsitnik@outlook.com
+- keyname: latitude
+  field_type: string
+  name: Latitude
+  description: The latitude of your location
+  placeholder: Latitude
+  help_text: 'Go to <a href="https://www.latlong.net" target="_blank">https://www.latlong.net</a>, search for the desired place or navigate using the map, then copy the latitude.'
+- keyname: longitude
+  field_type: string
+  name: Longitude
+  description: The longitude of your location
+  placeholder: Longitude
+  help_text: 'Go to <a href="https://www.latlong.net" target="_blank">https://www.latlong.net</a>, search for the desired place or navigate using the map, then copy the longitude.'
+- keyname: temp_unit
+  field_type: select
+  name: Temperature Unit
+  description: Select the desired temperature unit
+  default: fahrenheit
+  options:
+    - Celsius: celsius
+    - Fahrenheit: fahrenheit
+- keyname: location_name
+  field_type: string
+  optional: true
+  name: Location Name
+  placeholder: Location name
+  description: "Give a name to help identify this location (eg: home, office, city name, etc.)"
+  help_text: "This name will be displayed at the right side of the plugin title bar."
