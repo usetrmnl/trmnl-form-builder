@@ -9,7 +9,7 @@ importers:
   .:
     devDependencies:
       '@vitest/coverage-v8':
-        specifier: ^1.0.0
+        specifier: ^1.6.1
         version: 1.6.1(vitest@1.6.1)
       '@vitest/ui':
         specifier: ^1.0.0

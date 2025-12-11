@@ -28,10 +28,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       
-      - name: Run tests
-        run: pnpm test
+      - name: Run tests with coverage
+        run: pnpm test:coverage
       
-      - name: Upload coverage reports (optional)
+      - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
