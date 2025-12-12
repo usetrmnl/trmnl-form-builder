@@ -1193,7 +1193,7 @@ class TRMLYamlForm extends HTMLElement {
 			  Use Label:Value pairs
 			</label>
 			<div id="options-help" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
-			  ${useLabelValue ? 'Enter one per line in format "Label: value"' : 'Enter one option per line'}
+			  ${useLabelValue ? 'Enter one per line in format "Label: value"' : 'Enter one option per line<br/>TIP: Value will be lowercased for Liquid comparison operators'}
 			</div>
 		  ` : '';
 		  
@@ -1369,7 +1369,7 @@ class TRMLYamlForm extends HTMLElement {
 		  if (helpDiv) {
 		    helpDiv.textContent = e.target.checked 
 			  ? 'Enter one per line in format "Label: value"'
-			  : 'Enter one option per line';
+			  : 'Enter one option per line (Value will be lowercased for Liquid comparison operators)';
 		  }
 	    });
  	  }
