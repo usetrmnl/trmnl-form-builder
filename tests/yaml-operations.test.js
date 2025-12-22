@@ -214,6 +214,28 @@ describe('TRMNL Form Builder - YAML Operations', () => {
       
       expect(yaml).toBe('# No fields defined yet')
     })
+
+    it('should quote boolean literal labels in options', () => {
+      element.fields = [{
+        id: 'field_1',
+        keyname: 'show_email',
+        field_type: 'select',
+        name: 'Show Email',
+        options: [
+          { 'Yes': 'yes' },
+          { 'No': 'no' },
+          { 'True': 'true' },
+          { 'False': 'false' }
+        ]
+      }]
+
+      const yaml = element.generateYaml()
+      
+      expect(yaml).toContain('"Yes": "yes"')
+      expect(yaml).toContain('"No": "no"')
+      expect(yaml).toContain('"True": "true"')
+      expect(yaml).toContain('"False": "false"')
+    })
   })
 
   describe('Helper Methods', () => {

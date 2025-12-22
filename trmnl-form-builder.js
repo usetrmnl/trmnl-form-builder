@@ -1658,8 +1658,10 @@ class TRMLYamlForm extends HTMLElement {
 			if (typeof opt === 'object') {
 			  // Label:Value pair - format as YAML key:value
 			  const [label, value] = Object.entries(opt)[0];
-			  // Don't escape the label in the key position, only the value
-			  lines.push(`  - ${label}: ${this.escapeYaml(value)}`);
+			  // Escape both label and value to handle boolean literals
+			  const escapedLabel = this.escapeYaml(label);
+			  const escapedValue = this.escapeYaml(value);
+			  lines.push(`  - ${escapedLabel}: ${escapedValue}`);
 			} else {
 			  // Simple string
 			  lines.push(`  - ${this.escapeYaml(opt)}`);
