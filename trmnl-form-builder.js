@@ -102,7 +102,10 @@ class TRMLYamlForm extends HTMLElement {
 		i18n_descriptions: { label: 'Description Translations', type: 'i18n_map', help: 'Add translated descriptions for specific locales.' },
 		
 		// Conditional Logic
-		conditional_validation: { label: 'Conditional Logic', type: 'conditional_builder', help: 'Hide other fields based on this field\'s value' }
+		conditional_validation: { label: 'Conditional Logic', type: 'conditional_builder', help: 'Hide other fields based on this field\'s value' },
+
+		// Dependencies
+		depends_on: { label: 'Depends On', type: 'depends_on_select', help: 'Load options only after another field has a value' }
 	  };
 
 	  // --- Field Types (Added 'properties' array to each) ---
@@ -167,9 +170,9 @@ class TRMLYamlForm extends HTMLElement {
 		  category: 'SELECTION', name: 'Select', description: 'Dropdown', 
 		  properties: ['options', 'default', 'multiple', 'optional', 'conditional_validation'] 
 		},
-		xhrSelect: { 
-		  category: 'SELECTION', name: 'XhrSelect', description: 'Dynamic dropdown', 
-		  properties: ['endpoint', 'http_verb', 'multiple', 'optional'] 
+		xhrSelect: {
+		  category: 'SELECTION', name: 'XhrSelect', description: 'Dynamic dropdown',
+		  properties: ['endpoint', 'http_verb', 'depends_on', 'multiple', 'optional']
 		},
 		xhrSelectSearch: { 
 		  category: 'SELECTION', name: 'XhrSelectSearch', description: 'Searchable dynamic', 
@@ -1039,7 +1042,10 @@ class TRMLYamlForm extends HTMLElement {
             // Perform the move
             const [draggedField] = this.fields.splice(this.draggedFromIndex, 1);
             this.fields.splice(toIndex, 0, draggedField);
-            
+
+            // Clean up any invalid depends_on references after reorder
+            this.cleanupDependsOn();
+
             // Re-render
             this.updateCanvasView();
             this.updateYamlOutput();
@@ -1064,6 +1070,38 @@ class TRMLYamlForm extends HTMLElement {
     });
     
     this.updateFieldCount();
+  }
+
+  // Clean up invalid depends_on references after reorder/delete
+  cleanupDependsOn() {
+    const cleared = [];
+
+    this.fields.forEach((field, index) => {
+      if (!field.depends_on) return;
+
+      const parentKeyname = field.depends_on;
+
+      // Check if parent exists and is an xhrSelect
+      const parent = this.fields.find(f => f.keyname === parentKeyname);
+      if (!parent || parent.field_type !== 'xhrSelect') {
+        cleared.push({ field: field.keyname, parent: parentKeyname, reason: 'parent was deleted' });
+        delete field.depends_on;
+        return;
+      }
+
+      // Check if parent appears before this field
+      const parentIndex = this.fields.findIndex(f => f.keyname === parentKeyname);
+      if (parentIndex >= index) {
+        cleared.push({ field: field.keyname, parent: parentKeyname, reason: 'parent must appear first' });
+        delete field.depends_on;
+      }
+    });
+
+    // Show toast for each cleared dependency
+    if (cleared.length > 0) {
+      const messages = cleared.map(c => `'${c.field}' dependency on '${c.parent}' cleared (${c.reason})`);
+      this.showToast(messages.join('\n'));
+    }
   }
 
   updateAuthorBioState() {
@@ -1254,7 +1292,66 @@ class TRMLYamlForm extends HTMLElement {
 			${def.help ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${def.help}</div>` : ''}
 		  </div>`;
 	  }
-	  
+
+	  // --- Depends On Select Renderer ---
+	  if (def.type === 'depends_on_select') {
+		const currentIndex = this.fields.findIndex(f => f.id === field.id);
+
+		// Find fields that would create a circular dependency if selected
+		// (any field that directly or transitively depends on the current field)
+		const wouldCreateCycle = (candidateKeyname) => {
+		  const visited = new Set([field.keyname]);
+		  let current = candidateKeyname;
+
+		  while (current) {
+			if (visited.has(current)) return true;
+			visited.add(current);
+			const parent = this.fields.find(f => f.keyname === current);
+			current = parent?.depends_on;
+		  }
+		  return false;
+		};
+
+		// Get xhrSelect fields that:
+		// 1. Are not this field
+		// 2. Appear BEFORE this field in the list (parent must be declared first)
+		// 3. Would not create a circular dependency
+		const validParentFields = this.fields.filter((f, idx) =>
+		  f.id !== field.id &&
+		  f.field_type === 'xhrSelect' &&
+		  idx < currentIndex &&
+		  !wouldCreateCycle(f.keyname)
+		);
+
+		const currentValue = field.depends_on || '';
+
+		let optionsHtml = '<option value="">None</option>';
+		validParentFields.forEach(f => {
+		  const selected = currentValue === f.keyname ? 'selected' : '';
+		  optionsHtml += `<option value="${f.keyname}" ${selected}>${f.keyname} (${f.name})</option>`;
+		});
+
+		// Check if there are xhrSelect fields but none are valid parents
+		const allXhrSelectFields = this.fields.filter(f => f.id !== field.id && f.field_type === 'xhrSelect');
+		let helpMsg = '';
+		if (allXhrSelectFields.length === 0) {
+		  helpMsg = '<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; font-style: italic;">Add another xhrSelect field first to enable dependencies.</div>';
+		} else if (validParentFields.length === 0) {
+		  helpMsg = '<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; font-style: italic;">No valid parents available. Parent fields must appear before this field in the list.</div>';
+		} else if (def.help) {
+		  helpMsg = `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${def.help}</div>`;
+		}
+
+		return `
+		  <div class="form-group" id="prop-${key}">
+			<label class="form-label">${def.label}</label>
+			<select class="form-input" data-prop="${key}" ${validParentFields.length === 0 ? 'disabled' : ''}>
+			  ${optionsHtml}
+			</select>
+			${helpMsg}
+		  </div>`;
+	  }
+
 	  // --- Handle generic Select inputs (including http_verb) ---
 	  if (def.options && Array.isArray(def.options)) {
 		  // Determine the current value, falling back to default if not set
@@ -1573,6 +1670,12 @@ class TRMLYamlForm extends HTMLElement {
 			this.updateYamlOutput();
 			return;
 		}
+		// Special handling for 'depends_on' - delete property if set to empty/None
+		if (prop === 'depends_on' && value === '') {
+			delete field.depends_on;
+			this.updateYamlOutput();
+			return;
+		}
 	  }
 
 	  // 2. Save Value
@@ -1685,11 +1788,15 @@ class TRMLYamlForm extends HTMLElement {
           // Always print the http_verb for XHR fields, even if it's the default 'GET'.
           lines.push(`  http_verb: ${verb}`);
       } else if (field.http_verb && field.http_verb !== 'GET') {
-          // Keep this secondary check for non-XHR fields that might use a non-default verb 
+          // Keep this secondary check for non-XHR fields that might use a non-default verb
           // (though unlikely with current definitions)
           lines.push(`  http_verb: ${field.http_verb}`);
       }
-	       
+
+      if (field.depends_on) {
+        lines.push(`  depends_on: ${field.depends_on}`);
+      }
+
       if (field.value) {
         lines.push(`  value: ${this.escapeYaml(field.value)}`);
       }
@@ -1762,10 +1869,11 @@ class TRMLYamlForm extends HTMLElement {
   reorderFields(draggedId, targetId) {
     const draggedIndex = this.fields.findIndex(f => f.id === draggedId);
     const targetIndex = this.fields.findIndex(f => f.id === targetId);
-    
+
     if (draggedIndex !== -1 && targetIndex !== -1) {
       const [draggedField] = this.fields.splice(draggedIndex, 1);
       this.fields.splice(targetIndex, 0, draggedField);
+      this.cleanupDependsOn();
       this.updateCanvasView();
       this.updateYamlOutput();
     }
@@ -1809,10 +1917,12 @@ class TRMLYamlForm extends HTMLElement {
     if (this.selectedFieldId === fieldId) {
       this.selectedFieldId = this.fields[0]?.id || null;
     }
+    // Clean up any depends_on references to the deleted field
+    this.cleanupDependsOn();
     this.updateCanvasView();
     this.updateConfigPanel();
     this.updateYamlOutput();
-	this.updateAuthorBioState();
+    this.updateAuthorBioState();
   }
 
   updateFieldCount() {
