@@ -1833,15 +1833,16 @@ class TRMLYamlForm extends HTMLElement {
 	  }
 
 	  // Capture any i18n description keys
-	  Object.keys(field).forEach(k => {
-	    if (k.startsWith('description-')) {
-		  lines.push( `  ${k}: "${field[k]}"`);
-	    }
+	  Object.keys(field)
+	    .filter(k => k.startsWith('description-'))
+	    .sort()
+	    .forEach(k => {
+		  lines.push(`  ${k}: ${this.escapeYaml(field[k])}`);
 	  });
       
     });
     
-    return lines.join('\n');
+    return lines.join('\n').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   }
 
   escapeYaml(value) {
@@ -2085,6 +2086,10 @@ class TRMLYamlForm extends HTMLElement {
   
 	parseYaml(yamlText) {
 		const fields = [];
+		yamlText = yamlText
+			.replace(/^\uFEFF/, '') // optional but recommended
+			.replace(/\r\n/g, '\n')
+			.replace(/\r/g, '\n')
 		const lines = yamlText.split('\n');
 		let currentField = null;
 		let currentArray = null;
