@@ -41,4 +41,29 @@ describe('TRMNL Form Builder - Unit Tests', () => {
       expect(element.unescapeYaml(0)).toBe(0)
     })
   })
+
+  describe('step property for number fields', () => {
+    it('should include step in YAML output when set', () => {
+      element.addField('number')
+      const numberField = element.fields[0]
+      numberField.step = 0.1
+      
+      // Update the field to trigger yaml regeneration
+      element.updateYamlOutput()
+      
+      const yaml = element.generateYaml()
+      expect(yaml).toContain('step: 0.1')
+    })
+
+    it('should not include step in YAML when not set', () => {
+      element.addField('number')
+      // Don't set step property
+      
+      // Update the field to trigger yaml regeneration
+      element.updateYamlOutput()
+      
+      const yaml = element.generateYaml()
+      expect(yaml).not.toContain('step:')
+    })
+  })
 })

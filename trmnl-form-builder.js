@@ -73,6 +73,7 @@ class TRMLYamlForm extends HTMLElement {
 		placeholder: { label: 'Placeholder', type: 'text', placeholder: 'Example value' },
 		min: { label: 'Minimum Value', type: 'number', placeholder: '0' },
 		max: { label: 'Maximum Value', type: 'number', placeholder: '100' },
+		step: { label: 'Step Value', type: 'number', placeholder: '0.1' },
 		maxlength: { label: 'Maximum Length', type: 'number', placeholder: '12' },
 		rows: { label: 'Rows', type: 'number', placeholder: '10' },
 		
@@ -146,7 +147,7 @@ class TRMLYamlForm extends HTMLElement {
 		// Numeric
 		number: { 
 		  category: 'NUMERIC', name: 'Number', description: 'Numeric input', 
-		  properties: ['default', 'placeholder', 'min', 'max', 'optional', 'conditional_validation'] 
+		  properties: ['default', 'placeholder', 'min', 'max', 'step', 'optional', 'conditional_validation'] 
 		},
 		
 		// Date & Time
@@ -1742,11 +1743,15 @@ class TRMLYamlForm extends HTMLElement {
         lines.push(`  min: ${field.min}`);
       }
       
-      if (field.max !== undefined) {
-        lines.push(`  max: ${field.max}`);
-      }
-      
-      if (field.maxlength !== undefined) {
+if (field.max !== undefined) {
+         lines.push(`  max: ${field.max}`);
+       }
+       
+       if (field.step !== undefined) {
+         lines.push(`  step: ${field.step}`);
+       }
+       
+       if (field.maxlength !== undefined) {
         lines.push(`  maxlength: ${field.maxlength}`);
       }
 
