@@ -56,6 +56,26 @@ No explicit linting commands found. Project appears to use standard JavaScript w
 - Tests use `describe`, `it`, and `expect` patterns
 - Tests run in jsdom environment to simulate browser context
 
+### Field Types
+The form builder supports various field types including:
+- string, textarea, number, email, url, password, select, checkbox, radio, author_bio
+- xhrSelect and xhrSelectSearch for dynamic dropdowns with dependencies
+- Special fields like copyable and copyable_webhook_url
+
+### Depends On Functionality
+Fields can depend on other xhrSelect fields using the `depends_on` property. When a field has a `depends_on` property:
+- The referenced parent field must be an xhrSelect type
+- The parent field must appear before the child field in the form
+- If these conditions are not met, the depends_on reference is automatically cleared
+- This functionality ensures that dynamic dropdowns only load options when their dependencies are satisfied
+
+### YAML Generation
+The component generates YAML configuration files for form definitions with proper escaping of special characters and handling of complex data types including:
+- String values with proper quoting
+- Label:Value pairs in select options
+- Special handling for boolean literals and other YAML reserved words
+- Proper indentation and structure according to YAML standards
+
 ### Additional Notes
 - Component uses custom element API (`customElements.define`)
 - Implements shadow DOM for encapsulation
