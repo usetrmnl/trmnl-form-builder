@@ -66,4 +66,44 @@ describe('TRMNL Form Builder - Unit Tests', () => {
       expect(yaml).not.toContain('step:')
     })
   })
+
+  describe('boolean field type', () => {
+    it('should include boolean in field types', () => {
+      const fieldTypes = Object.keys(element.fieldTypes)
+      expect(fieldTypes).toContain('boolean')
+    })
+
+    it('should support boolean field properties', () => {
+      element.addField('boolean')
+      const booleanField = element.fields[0]
+      
+      // Check that the default properties are set
+      expect(booleanField.field_type).toBe('boolean')
+      expect(booleanField.keyname).toMatch(/^boolean_\d+$/)
+    })
+
+    it('should generate YAML with boolean field matching the example from request', () => {
+      element.addField('boolean')
+      const booleanField = element.fields[0]
+      booleanField.keyname = 'skip_device_validation'
+      booleanField.field_type = 'boolean'
+      booleanField.name = 'Skip Device Validation (Danger Mode)'
+      booleanField.description = 'When enabled, skips device-specific image validation. Use if you are sure that your device does support the image you are uploading.'
+      booleanField.default = false
+      booleanField.optional = true
+      
+      element.updateYamlOutput()
+      
+      const yaml = element.generateYaml()
+      
+      // Check that all required fields are present in YAML output
+      expect(yaml).toContain('keyname: skip_device_validation')
+      expect(yaml).toContain('field_type: boolean')
+      expect(yaml).toContain('name: Skip Device Validation (Danger Mode)')
+      expect(yaml).toContain('description: "When enabled, skips device-specific image validation. Use if you are sure that your device does support the image you are uploading."')
+      // The default value will be an empty string because of how it's handled in the implementation
+      expect(yaml).toContain('default: false')
+      expect(yaml).toContain('optional: true')
+    })
+  })
 })

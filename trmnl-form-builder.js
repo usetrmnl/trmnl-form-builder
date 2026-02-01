@@ -67,6 +67,7 @@ class TRMLYamlForm extends HTMLElement {
 		description: { label: 'Description', type: 'textarea', placeholder: 'Main description (HTML-friendly)' },
 		help_text: { label: 'Help Text', type: 'textarea', placeholder: 'Sub-label / hint (HTML-friendly)' },
 		optional: { label: 'Optional field', type: 'checkbox' },
+		default: { label: 'Default Value', type: 'text', placeholder: 'Pre-selected value' },
 		
 		// Inputs
 		default: { label: 'Default Value', type: 'text', placeholder: 'Pre-selected value' },
@@ -183,6 +184,10 @@ class TRMLYamlForm extends HTMLElement {
 		// Special
 		copyable: { category: 'SPECIAL', name: 'Copyable', description: 'Click-to-copy', properties: ['value'] },
 		copyable_webhook_url: { category: 'SPECIAL', name: 'Copyable Webhook', description: 'Click-to-copy webhook', properties: ['value'] },
+		boolean: { 
+		  category: 'TEXT INPUT', name: 'Boolean', description: 'True/False toggle', 
+		  properties: ['default', 'optional'] 
+		},
 	  };
 	}
 
@@ -1732,7 +1737,8 @@ class TRMLYamlForm extends HTMLElement {
       }
       
       if (field.hasOwnProperty('default')) {
-		  lines.push(`  default: ${this.escapeYaml(field.default)}`);
+		  const quoteLiterals = (field.field_type == 'boolean');
+		  lines.push(`  default: ${this.escapeYaml(field.default, quoteLiterals)}`);
 	  }
       
       if (field.optional) {
@@ -1850,12 +1856,13 @@ if (field.max !== undefined) {
     return lines.join('\n').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   }
 
-  escapeYaml(value) {
-	  if (!value && value !== 0) return '""';
-	  
+  escapeYaml(value,literals = false) {
+	  if (!literals && !value && value !== 0) return '""';
 	  // Convert to string if it's a number
 	  if (typeof value === 'number') { return value.toString(); }
 	  
+	  // Convert to string if it's a number
+	  if (literals && typeof value === 'boolean') { return value; }	  
 	  // If it's not a string at this point, return empty
 	  if (typeof value !== 'string') return '""';
 	  
@@ -1864,7 +1871,7 @@ if (field.max !== undefined) {
         /[:#\[\]\{\},&\*\|>!'"%@`\n\t]/.test(value) || // Existing special chars
         /^\d+$/.test(value) ||                       // Existing numeric string check
         value.startsWith(' ') || value.endsWith(' ') || // Existing whitespace check
-        /^(true|false|yes|no|on|off)$/i.test(value)      // NEW check for YAML literals (case-insensitive)
+        /^(true|false|yes|no|on|off)$/i.test(value)      // Check for YAML literals (case-insensitive)
       ){
 		  return `"${value.replace(/"/g, '\\"')}"`;
 	  };
