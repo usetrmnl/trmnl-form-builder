@@ -1725,21 +1725,50 @@ class TRMLYamlForm extends HTMLElement {
       lines.push(`  name: ${this.escapeYaml(field.name)}`);
       
       if (field.description) {
+        const formatted = this.formatYamlValue(field.description);
+        if (formatted.includes('\n')) {
+        lines.push(`  description: |`);
+        field.description.split('\n').forEach(line => {
+          lines.push(`    ${line}`);
+        });
+        } else {
         lines.push(`  description: ${this.escapeYaml(field.description)}`);
+        }
       }
-      
+
       if (field.help_text) {
+        if (typeof field.help_text === 'string' && field.help_text.includes('\n')) {
+        lines.push(`  help_text: |`);
+        field.help_text.split('\n').forEach(line => {
+          lines.push(`    ${line}`);
+        });
+        } else {
         lines.push(`  help_text: ${this.escapeYaml(field.help_text)}`);
+        }
       }
-      
+
       if (field.placeholder) {
+        if (typeof field.placeholder === 'string' && field.placeholder.includes('\n')) {
+        lines.push(`  placeholder: |`);
+        field.placeholder.split('\n').forEach(line => {
+          lines.push(`    ${line}`);
+        });
+        } else {
         lines.push(`  placeholder: ${this.escapeYaml(field.placeholder)}`);
+        }
       }
-      
+
       if (field.hasOwnProperty('default')) {
-		  const quoteLiterals = (field.field_type == 'boolean');
-		  lines.push(`  default: ${this.escapeYaml(field.default, quoteLiterals)}`);
-	  }
+        if (typeof field.default === 'string' && field.default.includes('\n')) {
+        lines.push(`  default: |`);
+        field.default.split('\n').forEach(line => {
+          lines.push(`    ${line}`);
+        });
+        } else {
+        const quoteLiterals = (field.field_type == 'boolean');
+        lines.push(`  default: ${this.escapeYaml(field.default, quoteLiterals)}`);
+        }
+      }
       
       if (field.optional) {
         lines.push(`  optional: true`);
@@ -1844,11 +1873,17 @@ if (field.max !== undefined) {
 	  }
 
 	  // Capture any i18n description keys
-	  Object.keys(field)
-	    .filter(k => k.startsWith('description-'))
-	    .sort()
-	    .forEach(k => {
-		  lines.push(`  ${k}: ${this.escapeYaml(field[k])}`);
+	  Object.keys(field).forEach(k => {
+		  if (k.startsWith('description-')) {
+			if (typeof field[k] === 'string' && field[k].includes('\n')) {
+			  lines.push(`  ${k}: |`);
+			  field[k].split('\n').forEach(line => {
+				lines.push(`    ${line}`);
+			  });
+			} else {
+			  lines.push(`  ${k}: "${field[k]}"`);
+			}
+		  }
 	  });
       
     });
@@ -1879,6 +1914,20 @@ if (field.max !== undefined) {
 	  return value;  
   }
 
+  formatYamlValue(value, indent = '  ') {
+	// Check if value contains newlines (multiline)
+	if (typeof value === 'string' && value.includes('\n')) {
+	  const lines = [`${indent}|`];
+	  // Split and indent each line
+	  value.split('\n').forEach(line => {
+	    lines.push(`${indent}  ${line}`);
+	  });
+	  return lines.join('\n');
+	} else {
+	  return `${indent}${this.escapeYaml(value)}`;
+	}
+  }
+  
   reorderFields(draggedId, targetId) {
     const draggedIndex = this.fields.findIndex(f => f.id === draggedId);
     const targetIndex = this.fields.findIndex(f => f.id === targetId);
@@ -2108,9 +2157,41 @@ if (field.max !== undefined) {
 		let currentArrayKey = null;
 		let currentCondition = null;
 		let currentNestedKey = null; // Helper to track if we are in hidden/required
+		let multilineKey = null; // Track which property is receiving multiline content
+		let multilineContent = []; // Collect multiline content
+		let multilineIndent = 0; // Track base indentation of multiline content
 
-		lines.forEach(line => {
-		  // Skip comments and empty lines
+
+		lines.forEach((line, index) => {
+		  // Handle multiline content (pipe symbol continuation)
+		  if (multilineKey) {
+			// Check if this line is part of the multiline content
+			// It should be indented more than the property declaration
+			const lineIndent = line.search(/\S/); // Find first non-whitespace character
+			
+			// If line is empty, add to multiline content
+			if (line.trim() === '') {
+			  multilineContent.push('');
+			  return;
+			}
+			
+			// If line has proper indentation (more than property line), it's part of multiline
+			if (lineIndent > multilineIndent) {
+			  // Remove the base indentation from the content line
+			  const contentLine = line.substring(multilineIndent + 2); // +2 for the base indentation after |
+			  multilineContent.push(contentLine);
+			  return;
+			} else {
+			  // End of multiline content - save it and continue processing this line
+			  currentField[multilineKey] = multilineContent.join('\n');
+			  multilineKey = null;
+			  multilineContent = [];
+			  multilineIndent = 0;
+			  // Don't return - fall through to process this line normally
+			}
+		  }
+		  
+		  // Skip comments and empty lines (when not in multiline mode)
 		  if (line.trim().startsWith('#') || !line.trim()) {
 			return;
 		  }
@@ -2131,10 +2212,18 @@ if (field.max !== undefined) {
 		  
 		  // 2. Field properties (2 spaces indentation)
 		  else if (currentField && line.match(/^\s{2}[a-zA-Z_-]+:/)) {
-  			const match = line.match(/^\s{2}([a-zA-Z_-]+):\s*(.*)$/);
+			const match = line.match(/^\s{2}([a-zA-Z_-]+):\s*(.*)$/);
 			if (match) {
 			  const key = match[1];
 			  const value = match[2].trim();
+
+			  // Check for pipe symbol (multiline string indicator)
+			  if (value === '|') {
+				multilineKey = key;
+				multilineContent = [];
+				multilineIndent = 2; // Base indentation for field properties
+				return;
+			  }
 
 			  // Handle array start (value is empty)
 			  if (!value || value === '') {
@@ -2216,6 +2305,11 @@ if (field.max !== undefined) {
 			}
 		  }
 		});
+
+		// Save any remaining multiline content
+		if (multilineKey && currentField) {
+		  currentField[multilineKey] = multilineContent.join('\n');
+		}
 
 		// Don't forget the last field
 		if (currentField) {

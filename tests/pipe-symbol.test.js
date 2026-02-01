@@ -6,6 +6,8 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import '../trmnl-form-builder.js';
 
 describe('TRMLYamlForm - Pipe Symbol YAML Support', () => {
@@ -44,6 +46,128 @@ describe('TRMLYamlForm - Pipe Symbol YAML Support', () => {
       // The default value should preserve the multiline formatting
       const expectedDefault = '{\n  "Example": "Replace" \n}';
       expect(result[0].default).toBe(expectedDefault);
+    });
+
+    test('should parse multiline description field', () => {
+      const yamlInput = `- keyname: desc_field
+  field_type: code
+  name: Description Field
+  description: |
+    hello
+    world`;
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].description).toBe('hello\nworld');
+    });
+
+    test('should parse multiline help_text field', () => {
+      const yamlInput = `- keyname: help_field
+  field_type: code
+  name: Help Field
+  help_text: |
+    {
+      "Example": "Replace" 
+    }`;
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].help_text).toBe('{\n  "Example": "Replace" \n}');
+    });
+
+    test('should parse multiline placeholder field', () => {
+      const yamlInput = `- keyname: placeholder_field
+  field_type: text
+  name: Placeholder Field
+  placeholder: |
+    {
+      "Place": "Holder" 
+    }`;
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].placeholder).toBe('{\n  "Place": "Holder" \n}');
+    });
+
+    test('should parse multiline i18n description fields', () => {
+      const yamlInput = `- keyname: i18n_field
+  field_type: code
+  name: i18n Field
+  description: |
+    hello
+    world
+  description-es: |
+    hola
+    mundo
+  description-fr: |
+    bonjour
+    monde`;
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].description).toBe('hello\nworld');
+      expect(result[0]['description-es']).toBe('hola\nmundo');
+      expect(result[0]['description-fr']).toBe('bonjour\nmonde');
+    });
+
+    test('should parse the multiline.yml test fixture', async () => {
+      // Read the actual fixture file
+	  const yamlInput = readFileSync(
+        join(process.cwd(), 'test-fixtures', 'multiline.yml'),
+        'utf-8'
+      )
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(4);
+      
+      // Field 1: example_default
+      expect(result[0].keyname).toBe('example_default');
+      expect(result[0].default).toBe('{\n  "Example": "Replace" \n}');
+      expect(result[0].rows).toBe(8);
+      
+      // Field 2: example_help
+      expect(result[1].keyname).toBe('example_help');
+      expect(result[1].help_text).toBe('{\n  "Example": "Replace" \n}');
+      
+      // Field 3: example_placeholder
+      expect(result[2].keyname).toBe('example_placeholder');
+      expect(result[2].placeholder).toBe('{\n  "Place": "Holder" \n}');
+      
+      // Field 4: example_desc
+      expect(result[3].keyname).toBe('example_desc');
+      expect(result[3].description).toBe('hello\nworld');
+      expect(result[3]['description-es']).toBe('hola\nmundo');
+    });
+
+    test('should handle multiple multiline fields in same field definition', () => {
+      const yamlInput = `- keyname: multi_multiline
+  field_type: text
+  name: Multiple Multiline
+  description: |
+    First multiline
+    description
+  help_text: |
+    Second multiline
+    help text
+  placeholder: |
+    Third multiline
+    placeholder
+  default: |
+    Fourth multiline
+    default`;
+
+      const result = formBuilder.parseYaml(yamlInput);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].description).toBe('First multiline\ndescription');
+      expect(result[0].help_text).toBe('Second multiline\nhelp text');
+      expect(result[0].placeholder).toBe('Third multiline\nplaceholder');
+      expect(result[0].default).toBe('Fourth multiline\ndefault');
     });
 
     test('should parse multiple code fields with pipe symbol defaults', () => {
@@ -232,6 +356,83 @@ describe('TRMLYamlForm - Pipe Symbol YAML Support', () => {
       expect(yamlOutput).toContain('  }');
     });
 
+    test('should generate YAML with pipe symbol for multiline description', () => {
+      const fields = [{
+        id: 'field_1',
+        keyname: 'desc_field',
+        field_type: 'string',
+        name: 'Description Field',
+        description: 'hello\nworld'
+      }];
+
+      formBuilder.setFields(fields);
+      const yamlOutput = formBuilder.getYaml();
+
+      expect(yamlOutput).toContain('description: |');
+      expect(yamlOutput).toContain('    hello');
+      expect(yamlOutput).toContain('    world');
+    });
+
+    test('should generate YAML with pipe symbol for multiline help_text', () => {
+      const fields = [{
+        id: 'field_1',
+        keyname: 'help_field',
+        field_type: 'string',
+        name: 'Help Field',
+        help_text: 'Line 1\nLine 2\nLine 3'
+      }];
+
+      formBuilder.setFields(fields);
+      const yamlOutput = formBuilder.getYaml();
+
+      expect(yamlOutput).toContain('help_text: |');
+      expect(yamlOutput).toContain('    Line 1');
+      expect(yamlOutput).toContain('    Line 2');
+      expect(yamlOutput).toContain('    Line 3');
+    });
+
+    test('should generate YAML with pipe symbol for multiline placeholder', () => {
+      const fields = [{
+        id: 'field_1',
+        keyname: 'placeholder_field',
+        field_type: 'text',
+        name: 'Placeholder Field',
+        placeholder: 'First line\nSecond line'
+      }];
+
+      formBuilder.setFields(fields);
+      const yamlOutput = formBuilder.getYaml();
+
+      expect(yamlOutput).toContain('placeholder: |');
+      expect(yamlOutput).toContain('    First line');
+      expect(yamlOutput).toContain('    Second line');
+    });
+
+    test('should generate YAML with pipe symbol for i18n descriptions', () => {
+      const fields = [{
+        id: 'field_1',
+        keyname: 'i18n_field',
+        field_type: 'string',
+        name: 'i18n Field',
+        description: 'hello\nworld',
+        'description-es': 'hola\nmundo',
+        'description-fr': 'bonjour\nmonde'
+      }];
+
+      formBuilder.setFields(fields);
+      const yamlOutput = formBuilder.getYaml();
+
+      expect(yamlOutput).toContain('description: |');
+      expect(yamlOutput).toContain('    hello');
+      expect(yamlOutput).toContain('    world');
+      expect(yamlOutput).toContain('description-es: |');
+      expect(yamlOutput).toContain('    hola');
+      expect(yamlOutput).toContain('    mundo');
+      expect(yamlOutput).toContain('description-fr: |');
+      expect(yamlOutput).toContain('    bonjour');
+      expect(yamlOutput).toContain('    monde');
+    });
+
     test('should not use pipe symbol for single-line defaults', () => {
       const fields = [{
         id: 'field_1',
@@ -275,6 +476,125 @@ describe('TRMLYamlForm - Pipe Symbol YAML Support', () => {
       expect(reparsed[0].default).toBe(parsed[0].default);
       expect(reparsed[0].default).toContain('\n');
       expect(reparsed[0].default).toContain('"test": "value"');
+    });
+
+    test('should maintain multiline description through round-trip', () => {
+      const originalYaml = `- keyname: desc_test
+  field_type: string
+  name: Description Test
+  description: |
+    Line one
+    Line two
+    Line three`;
+
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      expect(reparsed[0].description).toBe(parsed[0].description);
+      expect(reparsed[0].description).toBe('Line one\nLine two\nLine three');
+    });
+
+    test('should maintain multiline help_text through round-trip', () => {
+      const originalYaml = `- keyname: help_test
+  field_type: string
+  name: Help Test
+  help_text: |
+    Help line 1
+    Help line 2`;
+
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      expect(reparsed[0].help_text).toBe(parsed[0].help_text);
+      expect(reparsed[0].help_text).toBe('Help line 1\nHelp line 2');
+    });
+
+    test('should maintain multiline placeholder through round-trip', () => {
+      const originalYaml = `- keyname: placeholder_test
+  field_type: text
+  name: Placeholder Test
+  placeholder: |
+    Placeholder line 1
+    Placeholder line 2`;
+
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      expect(reparsed[0].placeholder).toBe(parsed[0].placeholder);
+      expect(reparsed[0].placeholder).toBe('Placeholder line 1\nPlaceholder line 2');
+    });
+
+    test('should maintain multiline i18n descriptions through round-trip', () => {
+      const originalYaml = `- keyname: i18n_test
+  field_type: string
+  name: i18n Test
+  description: |
+    English line 1
+    English line 2
+  description-es: |
+    Spanish line 1
+    Spanish line 2
+  description-fr: |
+    French line 1
+    French line 2`;
+
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      expect(reparsed[0].description).toBe(parsed[0].description);
+      expect(reparsed[0]['description-es']).toBe(parsed[0]['description-es']);
+      expect(reparsed[0]['description-fr']).toBe(parsed[0]['description-fr']);
+    });
+
+    test('should maintain multiline.yml fixture through round-trip', async () => {
+      // Read the actual fixture file
+	  const originalYaml = readFileSync(
+        join(process.cwd(), 'test-fixtures', 'multiline.yml'),
+        'utf-8'
+      )
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      // Verify all fields maintained their multiline values
+      expect(reparsed[0].default).toBe(parsed[0].default);
+      expect(reparsed[1].help_text).toBe(parsed[1].help_text);
+      expect(reparsed[2].placeholder).toBe(parsed[2].placeholder);
+      expect(reparsed[3].description).toBe(parsed[3].description);
+      expect(reparsed[3]['description-es']).toBe(parsed[3]['description-es']);
+    });
+
+    test('should handle mixed single-line and multiline fields in round-trip', () => {
+      const originalYaml = `- keyname: mixed_test
+  field_type: text
+  name: Mixed Test
+  description: single line description
+  help_text: |
+    multiline
+    help text
+  placeholder: single line placeholder
+  default: |
+    multiline
+    default`;
+
+      const parsed = formBuilder.parseYaml(originalYaml);
+      formBuilder.setFields(parsed);
+      const generatedYaml = formBuilder.getYaml();
+      const reparsed = formBuilder.parseYaml(generatedYaml);
+
+      expect(reparsed[0].description).toBe('single line description');
+      expect(reparsed[0].help_text).toBe('multiline\nhelp text');
+      expect(reparsed[0].placeholder).toBe('single line placeholder');
+      expect(reparsed[0].default).toBe('multiline\ndefault');
     });
   });
 });
