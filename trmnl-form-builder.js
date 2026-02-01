@@ -1430,28 +1430,43 @@ class TRMLYamlForm extends HTMLElement {
 
 	  // --- Special handling for 'default' field ---
 	  if (key === 'default') {
-		  const hasDefault = field.hasOwnProperty('default');
-		  const defaultValue = hasDefault ? (field.default || '') : '';
-		  
-		  return `
-			<div class="form-group" id="prop-${key}">
-			  <label class="form-label">${def.label}</label>
-			  <label class="form-checkbox" style="margin-bottom: 8px;">
-				<input type="checkbox" id="enable-default" ${hasDefault ? 'checked' : ''}>
-				Set default value
-			  </label>
-			  <input type="${def.type}" class="form-input" id="default-input" data-prop="${key}" value="${defaultValue}" placeholder="${def.placeholder || ''}" ${!hasDefault ? 'disabled' : ''} style="opacity: ${hasDefault ? '1' : '0.5'}">
-			  ${def.help ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${def.help}</div>` : ''}
-			</div>`;
-	  }
-
-	  // Default: Text, Number, URL inputs
-	  return `
+		const hasDefault = field.hasOwnProperty('default');
+		const defaultValue = hasDefault ? (field.default || '') : '';
+		
+		// Check if parent field type should use textarea
+		const shouldUseTextarea = field.field_type === 'text' || field.field_type === 'code';
+		
+		const inputElement = shouldUseTextarea 
+			? `<textarea class="form-textarea" id="default-input" data-prop="${key}" placeholder="${def.placeholder || ''}" ${!hasDefault ? 'disabled' : ''} style="opacity: ${hasDefault ? '1' : '0.5'}; resize: vertical;">${defaultValue}</textarea>`
+			: `<input type="${def.type}" class="form-input" id="default-input" data-prop="${key}" value="${defaultValue}" placeholder="${def.placeholder || ''}" ${!hasDefault ? 'disabled' : ''} style="opacity: ${hasDefault ? '1' : '0.5'}">`;
+		
+		return `
 		  <div class="form-group" id="prop-${key}">
 			<label class="form-label">${def.label}</label>
-			<input type="${def.type}" class="form-input" data-prop="${key}" value="${value}" placeholder="${def.placeholder || ''}">
+			<label class="form-checkbox" style="margin-bottom: 8px;">
+			  <input type="checkbox" id="enable-default" ${hasDefault ? 'checked' : ''}>
+			  Set default value
+			</label>
+			${inputElement}
 			${def.help ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${def.help}</div>` : ''}
 		  </div>`;
+	  }
+
+
+	  // Default: Text, Number, URL inputs
+	  // Check if this is 'placeholder' and parent field type should use textarea
+	  const shouldUseTextarea = (key === 'placeholder') && (field.field_type === 'text' || field.field_type === 'code');
+
+	  const inputElement = shouldUseTextarea
+		? `<textarea class="form-textarea" data-prop="${key}" placeholder="${def.placeholder || ''}" style="resize: vertical;">${value}</textarea>`
+		: `<input type="${def.type}" class="form-input" data-prop="${key}" value="${value}" placeholder="${def.placeholder || ''}">`;
+
+	  return `
+		<div class="form-group" id="prop-${key}">
+		  <label class="form-label">${def.label}</label>
+		  ${inputElement}
+		  ${def.help ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${def.help}</div>` : ''}
+		</div>`;
   }
 
 
