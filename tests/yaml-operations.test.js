@@ -104,6 +104,20 @@ describe('TRMNL Form Builder - YAML Operations', () => {
       expect(yaml).toContain('default: ""')
     })
 
+    it('should generate YAML with truthy literal quoted', () => {
+      element.fields = [{
+        id: 'field_1',
+        keyname: 'test',
+        field_type: 'string',
+        name: 'Test String',
+        default: 'false'
+      }]
+
+      const yaml = element.generateYaml()
+      
+      expect(yaml).toContain('default: "false"')
+    })
+
     it('should generate YAML with min/max values', () => {
       element.fields = [{
         id: 'field_1',
