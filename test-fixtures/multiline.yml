@@ -1,0 +1,31 @@
+- keyname: example_default
+  field_type: code
+  name: Example Default
+  default: |
+    {
+      "Example": "Replace" 
+    }
+  rows: 8
+- keyname: example_help
+  field_type: code
+  name: Example Help
+  help_text: |
+    {
+      "Example": "Replace" 
+    }
+- keyname: example_placeholder
+  field_type: text
+  name: Example Placeholder
+  placeholder: |
+    {
+      "Place": "Holder" 
+    }
+- keyname: example_desc
+  field_type: code
+  name: Example Desc
+  description: |
+    hello
+    world
+  description-es: |
+    hola
+    mundo
