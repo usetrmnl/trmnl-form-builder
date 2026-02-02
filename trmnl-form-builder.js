@@ -198,7 +198,7 @@ class TRMLYamlForm extends HTMLElement {
 
   async loadCategories() {
     try {
-      const response = await fetch('https://usetrmnl.com/api/categories');
+      const response = await fetch('https://trmnl.com/api/categories');
       if (response.ok) {
         const data = await response.json();
         // Handle both array and object with data property
