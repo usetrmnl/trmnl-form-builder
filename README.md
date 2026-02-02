@@ -1,5 +1,5 @@
 # trmnl-form-builder
-A Javascript component for building [custom plugin form fields](https://help.usetrmnl.com/en/articles/10513740-custom-plugin-form-builder) for [TRMNL](https://usetrmnl.com/).
+A Javascript component for building [custom plugin form fields](https://help.trmnl.com/en/articles/10513740-custom-plugin-form-builder) for [TRMNL](https://trmnl.com/).
 
 **Use it now on [Github Pages](https://usetrmnl.github.io/trmnl-form-builder/).**
 
