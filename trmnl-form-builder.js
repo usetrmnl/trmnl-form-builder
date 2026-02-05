@@ -82,6 +82,7 @@ class TRMLYamlForm extends HTMLElement {
 		options: { label: 'Options (one per line)', type: 'textarea', placeholder: 'Option 1\nOption 2', help: 'Enter one option per line' },
 		multiple: { label: 'Allow multiple selection', type: 'checkbox' },
 		endpoint: { label: 'Endpoint *', type: 'text', placeholder: 'https://api.example.com/options' },
+		plugin_keyname: { label: 'Plugin Keyname', type: 'text', help: 'Form field keyname of merged plugins' },
 		http_verb: { 
 		  label: 'HTTP Method', 
 		  type: 'select', 
@@ -168,17 +169,21 @@ class TRMLYamlForm extends HTMLElement {
 		timezone: { category: 'DATE & TIME', name: 'Time Zone', description: 'Timezone selector', properties: ['default', 'optional'] },
 		
 		// Selection
-		select: { 
-		  category: 'SELECTION', name: 'Select', description: 'Dropdown', 
-		  properties: ['options', 'default', 'multiple', 'optional', 'conditional_validation'] 
+		select: {
+		  category: 'SELECTION', name: 'Select', description: 'Dropdown',
+		  properties: ['options', 'default', 'multiple', 'optional', 'conditional_validation']
 		},
 		xhrSelect: {
 		  category: 'SELECTION', name: 'XhrSelect', description: 'Dynamic dropdown',
 		  properties: ['endpoint', 'http_verb', 'depends_on', 'multiple', 'optional']
 		},
-		xhrSelectSearch: { 
-		  category: 'SELECTION', name: 'XhrSelectSearch', description: 'Searchable dynamic', 
-		  properties: ['endpoint', 'http_verb', 'multiple', 'optional'] 
+		xhrSelectSearch: {
+		  category: 'SELECTION', name: 'XhrSelectSearch', description: 'Searchable dynamic',
+		  properties: ['endpoint', 'http_verb', 'multiple', 'optional']
+		},
+		plugin_instance_select: {
+		  category: 'SELECTION', name: 'Plugin Instance Select', description: 'Dropdown for plugin instances',
+		  properties: ['plugin_keyname']
 		},
 		
 		// Special
@@ -1871,6 +1876,9 @@ if (field.max !== undefined) {
       }
       if (field.youtube_url) {
         lines.push(`  youtube_url: ${this.escapeYaml(field.youtube_url)}`);
+      }
+      if (field.plugin_keyname) {
+        lines.push(`  plugin_keyname: ${this.escapeYaml(field.plugin_keyname)}`);
       }
 	  
 	  // Conditional validation
