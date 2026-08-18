@@ -1146,7 +1146,21 @@ class TRMLYamlForm extends HTMLElement {
 	  
 	  // 2. Add Type-Specific Properties (These can now be strings OR objects)
 	  if (typeConfig && Array.isArray(typeConfig.properties)) {
-		visibleProps = [...visibleProps, ...typeConfig.properties];
+			typeConfig.properties.forEach(propEntry => {
+				console.log(propEntry);
+				const propKey = typeof propEntry === 'string' ? propEntry : propEntry.key;
+				console.log(propKey);
+				const existingIndex = visibleProps.findIndex(entry =>
+					(typeof entry === 'string' ? entry : entry.key) === propKey
+				);
+				console.log(existingIndex);
+
+				if (existingIndex === -1) {
+					visibleProps.push(propEntry);
+				} else {
+					visibleProps[existingIndex] = propEntry;
+				}
+			});
 	  }
 
 	  // 3. Generate HTML
