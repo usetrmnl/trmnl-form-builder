@@ -15,6 +15,12 @@ See `index.html` for an example.
 
 Theme can also be set to `dark`.
 
+Select fields support **Indexed in recipe search** (`indexable: true`). Only one
+select can be indexed: checking another clears the previous selection. YAML import
+and `setFields()` keep the first indexed select when several are marked, matching
+core's YAML order. Duplicated fields start with indexing disabled. Recipe search
+indexes the selected field's option labels, not their values.
+
 ### Known Issues
 - Import
   - More complex YAML structures with `|` or `>` aren't parsed properly

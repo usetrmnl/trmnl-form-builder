@@ -81,6 +81,7 @@ class TRMLYamlForm extends HTMLElement {
 		// Selection
 		options: { label: 'Options (one per line)', type: 'textarea', placeholder: 'Option 1\nOption 2', help: 'Enter one option per line' },
 		multiple: { label: 'Allow multiple selection', type: 'checkbox' },
+		indexable: { label: 'Indexed in recipe search', type: 'checkbox' },
 		endpoint: { label: 'Endpoint *', type: 'text', placeholder: 'https://api.example.com/options' },
 		plugin_keyname: { label: 'Plugin Keyname', type: 'text', help: 'Form field keyname of merged plugins' },
 		http_verb: { 
@@ -171,7 +172,7 @@ class TRMLYamlForm extends HTMLElement {
 		// Selection
 		select: {
 		  category: 'SELECTION', name: 'Select', description: 'Dropdown',
-		  properties: ['options', 'default', 'multiple', 'optional', 'conditional_validation']
+		  properties: ['options', 'default', 'multiple', 'indexable', 'optional', 'conditional_validation']
 		},
 		xhrSelect: {
 		  category: 'SELECTION', name: 'XhrSelect', description: 'Dynamic dropdown',
@@ -1717,6 +1718,11 @@ class TRMLYamlForm extends HTMLElement {
 
 	  // 2. Save Value
 	  field[prop] = value;
+	  if (prop === 'indexable' && value === true && field.field_type === 'select') {
+		this.fields.forEach(other => {
+		  if (other !== field) delete other.indexable;
+		});
+	  }
 	  
 	  // 3. --- NEW: Auto-populate help text for multiple select ---
 	  if (prop === 'multiple' && value === true && field.field_type === 'select') {
@@ -1845,6 +1851,10 @@ if (field.max !== undefined) {
       
       if (field.multiple) {
         lines.push(`  multiple: true`);
+      }
+
+      if (field.field_type === 'select' && field.indexable === true) {
+        lines.push(`  indexable: true`);
       }
       
       if (field.endpoint) {
@@ -1987,6 +1997,7 @@ if (field.max !== undefined) {
     if (field) {
       // 1. Create a deep copy of the original field object
       const newField = JSON.parse(JSON.stringify(field));
+      delete newField.indexable;
       
       // 2. Assign a new unique ID
       const newFieldId = `field_${this.nextFieldId++}`;
@@ -2165,6 +2176,7 @@ if (field.max !== undefined) {
 			return field;
 		  });
 		  
+		  this.cleanupIndexable();
 		  this.selectedFieldId = this.fields[0]?.id || null;
 		  this.updateCanvasView();
 		  this.updateConfigPanel();
@@ -2389,6 +2401,18 @@ if (field.max !== undefined) {
     setTimeout(() => toast.remove(), 2000);
   }
 
+  cleanupIndexable() {
+    // Core uses only the first indexed select in YAML order.
+    let found = false;
+    this.fields.forEach(field => {
+      if (field.field_type === 'select' && field.indexable === true && !found) {
+        found = true;
+      } else {
+        delete field.indexable;
+      }
+    });
+  }
+
   // Public API methods
   getYaml() {
     return this.generateYaml();
@@ -2400,6 +2424,7 @@ if (field.max !== undefined) {
 
   setFields(fields) {
     this.fields = JSON.parse(JSON.stringify(fields));
+    this.cleanupIndexable();
     this.selectedFieldId = this.fields[0]?.id || null;
     this.updateCanvasView();
     this.updateConfigPanel();
